@@ -1,130 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
+    android:orientation="vertical"
     tools:context="cn.entertech.shuhedemo.MainActivity">
 
     <Button
-        android:id="@+id/btn_connect"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:onClick="onConnect"
-        android:text="连接蓝牙"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/btn_connect_cushion"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/btn_connect_cushion"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:onClick="onConnectCushion"
-        android:text="连接坐垫蓝牙"
-        app:layout_constraintLeft_toRightOf="@+id/btn_connect"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/btn_start"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:onClick="onStart"
-        android:text="开始采集头环数据"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/btn_start_cushion"
-        app:layout_constraintTop_toBottomOf="@+id/btn_connect" />
-
-    <Button
-        android:id="@+id/btn_start_cushion"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:onClick="onStartCushionData"
-        android:text="开始采集坐垫数据"
-        app:layout_constraintLeft_toRightOf="@+id/btn_start"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_connect" />
-    <Button
         android:id="@+id/btnCreateData"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="生成模拟数据"
         android:onClick="onCreateData"
-        app:layout_constraintStart_toStartOf="@id/btn_start"
-        app:layout_constraintEnd_toEndOf="@id/btn_start"
         app:layout_constraintRight_toLeftOf="@+id/btnUseData"
         app:layout_constraintTop_toBottomOf="@+id/btn_start_cushion" />
     <Button
         android:id="@+id/btnUseData"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
         android:text="解析模拟数据"
-        android:onClick="onUseData"
-        app:layout_constraintLeft_toRightOf="@+id/btn_start"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_start_cushion" />
+        android:onClick="onUseData"/>
 
     <Button
         android:id="@+id/btnAnalysisEegData"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="解析双通道数据文件"
-        android:onClick="onAnalysisEegData"
-        app:layout_constraintStart_toStartOf="@+id/btn_start"
-        app:layout_constraintEnd_toEndOf="@+id/btn_start"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnCreateData" />
+        android:onClick="onAnalysisEegData"/>
     <Button
         android:id="@+id/btnAnalysisSceegData"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
         android:text="解析单通道数据文件"
-        android:onClick="onAnalysisSceegData"
-        app:layout_constraintLeft_toRightOf="@+id/btn_start"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnUseData" />
+        android:onClick="onAnalysisSceegData"/>
     <Button
         android:id="@+id/btnAnalysisCushionData"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
         android:text="解析坐垫数据文件"
-        android:onClick="onAnalysisCushionData"
-        app:layout_constraintLeft_toRightOf="@+id/btn_start"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnAnalysisSceegData" />
+        android:onClick="onAnalysisCushionData"/>
+
 
     <Button
-        android:id="@+id/btnDisconnectedBle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:onClick="onDisconnect"
-        android:text="断开蓝牙"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnAnalysisCushionData" />
-    <Button
         android:id="@+id/btnFinishAndGetReport"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
         android:onClick="onEnd"
-        android:text="结束并获取报表"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnDisconnectedBle" />
+        android:text="结束并获取报表"/>
     <ScrollView
         android:id="@+id/scrollView_logs"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -135,4 +64,4 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </ScrollView>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>
