@@ -65,16 +65,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         initManager()
         initPermission()
-        Log.d(
-            TAG,
-            "authentication: ${
-                AuthenticationHelper
-                    .authentication(
-                        this,
-                        resources.openRawResource(R.raw.check)
-                    ).toString()
-            }"
-        )
     }
 
     fun initManager() {
@@ -269,8 +259,7 @@ class MainActivity : AppCompatActivity() {
                         startCollection(this@apply)
                         appendLog("开始采集头环数据...")
                     } else {
-                        startAffectiveService(resources.openRawResource(R.raw.check),
-                            this@MainActivity,
+                        startAffectiveService(
                             object : IStartAffectiveServiceLister {
                                 override fun startAffectionFail(error: Error?) {
                                     appendLog("Affection算法初始化失败：${error}")
