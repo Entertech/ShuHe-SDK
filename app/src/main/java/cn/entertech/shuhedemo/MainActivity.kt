@@ -191,49 +191,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onAnalysisCushionData(view: View) {
-        /*   enterAffectiveSDKManager.init(R.raw.algorithm_auth, fun() {
-               appendLog("算法初始化成功")
-               cushionBleManager.startCollection()
-               appendLog("开始采集数据...")
+        startAffectiveService {
+            thread {
+                var inputStream = resources.openRawResource(R.raw.pepr1)
+                it?.apply {
+                    readFileAnalysisData(inputStream, { singleData ->
+                        false
+                    }, { allData ->
+                        if (allData.isNotEmpty()) {
+                            appendPEPRData(allData.toByteArray())
+                        }
+                    }, {
+                        it.toInt().toByte()
+                    }, object : Callback {
+                        override fun onError(error: Error?) {
+                            appendLog("解析文件失败：${error}")
+                        }
 
-               thread {
-                   var inputStream = resources.openRawResource(R.raw.pepr1)
-                   enterAffectiveSDKManager.readFileAndAppendData(inputStream) {
-                       it?.apply {
-                           enterAffectiveSDKManager.appendPepr(this)
-                       }
-                   }
-                   cushionBleManager.stopCollection()
-                   var report = enterAffectiveSDKManager.finish()
-                   appendLog("生成报表数据：${report}")
-               }
-           }, fun(error: String) {
-               appendLog("算法初始化失败：${error}")
-           })*/
+                        override fun onSuccess() {
+                            it?.getReport(object : IGetReportListener {
+                                override fun getAffectiveReportError(error: Error?) {
 
-    }
+                                }
 
-    fun onAnalysisEegData(view: View) {
-        /*   enterAffectiveSDKManager.setSaveRawData(true)
-           enterAffectiveSDKManager.init(R.raw.algorithm_auth, fun() {
-               appendLog("算法初始化成功")
-               biomoduleBleManager.startHeartAndBrainCollection()
-               appendLog("开始采集数据...")
+                                override fun getBioReportError(error: Error?) {
+                                }
 
-               thread {
-                   var inputStream = resources.openRawResource(R.raw.eeg_test)
-                   enterAffectiveSDKManager.readFileAndAppendData(inputStream) {
-                       it?.apply {
-                           enterAffectiveSDKManager.appendEEG(this)
-                       }
-                   }
-                   biomoduleBleManager.stopHeartAndBrainCollection()
-                   var report = enterAffectiveSDKManager.finish()
-                   appendLog("生成报表数据：${report}")
-               }
-           }, fun(error: String) {
-               appendLog("算法初始化失败：${error}")
-           })*/
+                                override fun onError(error: Error?) {
+                                    appendLog("生成报表数据失败：${error}")
+                                }
+
+                                override fun onSuccess(entity: UploadReportEntity?) {
+                                    appendLog("生成报表数据：${entity}")
+                                }
+                            }, true)
+                        }
+                    })
+                }
+            }
+        }
+
     }
 
     fun appendLog(text: String) {

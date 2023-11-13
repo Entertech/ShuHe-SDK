@@ -19,12 +19,6 @@
         app:layout_constraintTop_toBottomOf="@+id/btn_start_cushion" />
 
     <Button
-        android:id="@+id/btnAnalysisEegData"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="解析双通道数据文件"
-        android:onClick="onAnalysisEegData"/>
-    <Button
         android:id="@+id/btnAnalysisSceegData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
