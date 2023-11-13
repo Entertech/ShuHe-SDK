@@ -17,12 +17,6 @@
         android:onClick="onCreateData"
         app:layout_constraintRight_toLeftOf="@+id/btnUseData"
         app:layout_constraintTop_toBottomOf="@+id/btn_start_cushion" />
-    <Button
-        android:id="@+id/btnUseData"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="解析模拟数据"
-        android:onClick="onUseData"/>
 
     <Button
         android:id="@+id/btnAnalysisEegData"

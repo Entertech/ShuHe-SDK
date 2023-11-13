@@ -86,19 +86,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
-    fun onUseData(view: View) {
-        /*thread {
-            affectiveDataAnalysisService
-                .readFileAndAppendData(cacheDir.absolutePath + "filename.txt") {
-                    it?.apply {
-                        enterAffectiveSDKManager.appendSingleEEG(this)
-                    }
-                }
-
-        }*/
-    }
-
     private fun startAffectiveService(startCollection: (IAffectiveDataAnalysisService?) -> Unit) {
         affectiveDataAnalysisService?.apply {
             closeAffectiveServiceConnection()
