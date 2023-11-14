@@ -1,20 +1,21 @@
 package cn.entertech.shuhedemo
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 import cn.entertech.affective.sdk.api.Callback
 import cn.entertech.affective.sdk.api.IAffectiveDataAnalysisService
 import cn.entertech.affective.sdk.api.IConnectionServiceListener
-import cn.entertech.affective.sdk.api.IFinishAffectiveServiceListener
 import cn.entertech.affective.sdk.api.IGetReportListener
 import cn.entertech.affective.sdk.api.IStartAffectiveServiceLister
 import cn.entertech.affective.sdk.bean.AffectiveServiceWay
 import cn.entertech.affective.sdk.bean.EnterAffectiveConfigProxy
 import cn.entertech.affective.sdk.bean.Error
+import cn.entertech.affective.sdk.bean.RealtimeAffectiveData
+import cn.entertech.affective.sdk.bean.RealtimeBioData
 import cn.entertech.affective.sdk.bean.UploadReportEntity
-import cn.entertech.affectivesdk.utils.SingleChannelEEGUtil
 import cn.entertech.affectivesdk.utils.SingleChannelEEGUtil.SINGLE_EGG_PCK_CHECK
 import cn.entertech.affectivesdk.utils.SingleChannelEEGUtil.SINGLE_EGG_PCK_END
 import cn.entertech.affectivesdk.utils.SingleChannelEEGUtil.SINGLE_EGG_PCK_START
@@ -180,7 +181,16 @@ class MainActivity : AppCompatActivity() {
                                 }
 
                                 override fun onSuccess(entity: UploadReportEntity?) {
-                                    appendLog("生成报表数据：${entity}")
+                                    appendLog("生成报表数据：")
+
+                                    entity?.data?.affective?.sleep?.apply {
+                                        //睡眠曲线
+                                        log(
+                                            "睡眠曲线： $sleepCurve 入睡点: $sleepPoint " +
+                                                    "入睡用时 : $sleepLatency s 清醒时长 $awakeDuration s" +
+                                                    "浅睡时长: $lightDuration s 深睡时长 $deepDuration s"
+                                        )
+                                    }
                                 }
                             }, true)
                         }
@@ -190,48 +200,61 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun onAnalysisCushionData(view: View) {
-        startAffectiveService {
-            thread {
-                var inputStream = resources.openRawResource(R.raw.pepr1)
-                it?.apply {
-                    readFileAnalysisData(inputStream, { singleData ->
-                        false
-                    }, { allData ->
-                        if (allData.isNotEmpty()) {
-                            appendPEPRData(allData.toByteArray())
-                        }
-                    }, {
-                        it.toInt().toByte()
-                    }, object : Callback {
-                        override fun onError(error: Error?) {
-                            appendLog("解析文件失败：${error}")
-                        }
+    private fun log(msg: String) {
+        appendLog(msg)
+        Log.d(
+            TAG, msg
+        )
+    }
 
-                        override fun onSuccess() {
-                            it?.getReport(object : IGetReportListener {
-                                override fun getAffectiveReportError(error: Error?) {
 
-                                }
-
-                                override fun getBioReportError(error: Error?) {
-                                }
-
-                                override fun onError(error: Error?) {
-                                    appendLog("生成报表数据失败：${error}")
-                                }
-
-                                override fun onSuccess(entity: UploadReportEntity?) {
-                                    appendLog("生成报表数据：${entity}")
-                                }
-                            }, true)
-                        }
-                    })
-                }
+    private val bioListener: (RealtimeBioData?) -> Unit by lazy {
+        {
+            it?.realtimeSCEEGData?.apply {
+                val msg = "实时脑电波: $sceegWave 脑电波节律：α波 $sceegAlphaPower " +
+                        "β波:$sceegBetaPower Gamma波: $sceegGammaPower Delta波: $sceegDeltaPower " +
+                        "Theta波: $sceegThetaPower 数据质量： $sceegQuality"
+                log(msg)
+            } ?: kotlin.run {
+                val msg = "sceegDate is null"
+                log(msg)
             }
         }
-
     }
+
+    private val affectiveListener: (RealtimeAffectiveData?) -> Unit by lazy {
+        {
+            it?.realtimeSleepData?.apply {
+                log(
+                    "睡眠程度: $sleepDegree 入睡状态：${
+                        if (sleepState == 0.0) {
+                            "未睡着"
+                        } else {
+                            "入睡了"
+                        }
+                    }"
+                )
+            }
+        }
+    }
+
+
+    fun subscribeData(view: View) {
+        affectiveDataAnalysisService?.apply {
+            if (hasStartAffectiveService()) {
+                subscribeData(bioListener, affectiveListener)
+            }
+        }
+    }
+
+    fun unSubscribeData(view: View) {
+        affectiveDataAnalysisService?.apply {
+            if (hasStartAffectiveService()) {
+                unSubscribeData(bioListener, affectiveListener)
+            }
+        }
+    }
+
 
     fun appendLog(text: String) {
         runOnUiThread {
@@ -248,24 +271,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        affectiveDataAnalysisService?.finishAffectiveService(object :
-            IFinishAffectiveServiceListener {
-            override fun finishAffectiveFail(error: Error?) {
-                appendLog("算法初始化失败：${error}")
-            }
-
-            override fun finishBioFail(error: Error?) {
-                appendLog("算法初始化失败：${error}")
-            }
-
-            override fun finishError(error: Error?) {
-                appendLog("算法初始化失败：${error}")
-            }
-
-            override fun finishSuccess() {
-                appendLog("结束服务成功")
-            }
-        })
         affectiveDataAnalysisService?.closeAffectiveServiceConnection()
         super.onDestroy()
     }

@@ -24,14 +24,19 @@
         android:layout_height="wrap_content"
         android:text="解析单通道数据文件"
         android:onClick="onAnalysisSceegData"/>
+
     <Button
-        android:id="@+id/btnAnalysisCushionData"
+        android:id="@+id/btnSubscribeSceegData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="解析坐垫数据文件"
-        android:onClick="onAnalysisCushionData"/>
-
-
+        android:text="订阅实时单通道数据"
+        android:onClick="subscribeData"/>
+    <Button
+        android:id="@+id/btnUnSubscribeSceegData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="取消订阅实时单通道数据"
+        android:onClick="unSubscribeData"/>
     <Button
         android:id="@+id/btnFinishAndGetReport"
         android:layout_width="match_parent"
