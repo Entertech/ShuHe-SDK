@@ -5,7 +5,7 @@
 在module的build.gradle文件下添加以下依赖
 
 ```groovy
-implementation 'cn.entertech.android:affective-offline-sdk-shuhe:1.0.7'
+implementation 'cn.entertech.android:affective-offline-sdk-shuhe:1.1.2'
 ```
 
 在项目根目录的build.gradle文件下添加以下依赖地址
@@ -22,13 +22,11 @@ app/src/main/jniLibs目录下对应平台的so文件拷入自己的工程中
 
 ### 本地依赖
 
-将Demo中app/libs目录下的affective-offline-sdk-shuhe-1.0.7.aar文件和app/src/main/jniLibs目录下对应平台的so文件拷入自己的工程中
+将Demo中app/libs目录下的affective-offline-sdk-shuhe-1.1.2.aar文件和app/src/main/jniLibs目录下对应平台的so文件拷入自己的工程中
 
-# 快速接入
+# 使用
 
-SDK提供了快速接入情感云的管理类，使用该类只需要几步就可以完成客户端与情感云平台的数据交互。
-
-## 1.初始化
+## 初始化
 
 ```kotlin
  private val affectiveDataAnalysisService by lazy {
@@ -36,9 +34,7 @@ SDK提供了快速接入情感云的管理类，使用该类只需要几步就�
 }
 ```
 
-
-
-## 2.连接情感云服务
+## 连接算法服务
 
 ```kotlin
 fun connectAffectiveServiceConnection(
@@ -67,21 +63,92 @@ interface IConnectionServiceListener {
 |   listener  | IConnectionServiceListener | 连接结果回调，连接成功返回sessionId |
 | configProxy |  EnterAffectiveConfigProxy |   配置信息，使用**默认构造函数**即可  |
 
-## 3.启动情感云服务
+## 启动算法服务
 
 ```kotlin
  fun startAffectiveService(
         initListener: IStartAffectiveServiceLister
 )
+
+interface IStartAffectiveServiceLister {
+    /**
+     * 启动成功
+     * */
+    fun startSuccess()
+
+    /**
+     * 启动生物基础服务失败
+     * */
+    fun startBioFail(error: Error?)
+
+    /**
+     * 启动生理基础服务失败
+     * */
+    fun startAffectionFail(error: Error?)
+
+    /**
+     * 启动失败
+     * */
+    fun startFail(error: Error?)
+}
 ```
 
 **参数说明**
 
-|      参数      |              类型              |  说明 |
-| :----------: | :--------------------------: | :-: |
-| initListener | IStartAffectiveServiceLister |     |
+|      参数      |              类型              |     说明     |
+| :----------: | :--------------------------: | :--------: |
+| initListener | IStartAffectiveServiceLister | 启动算法服务结果回调 |
 
-## 4.解析脑电数据文件
+## 实时数据的订阅
+
+```
+IAffectiveDataAnalysisService.subscribeData(
+        bdListener: ((RealtimeBioData?) -> Unit)? = null,
+        listener: ((RealtimeAffectiveData?) -> Unit)? = null,
+    )
+
+/**
+     * 取消订阅
+     * */
+    IAffectiveDataAnalysisService.unSubscribeData(
+        bdListener: ((RealtimeBioData?) -> Unit)? = null,
+        listener: ((RealtimeAffectiveData?) -> Unit)? = null,
+    )
+
+    private val bioListener: (RealtimeBioData?) -> Unit by lazy {
+        {
+            it?.realtimeSCEEGData?.apply {
+                val msg = "实时脑电波: $sceegWave 脑电波节律：α波 $sceegAlphaPower " +
+                        "β波:$sceegBetaPower Gamma波: $sceegGammaPower Delta波: $sceegDeltaPower " +
+                        "Theta波: $sceegThetaPower 数据质量： $sceegQuality"
+                log(msg)
+            } ?: kotlin.run {
+                val msg = "sceegDate is null"
+                log(msg)
+            }
+        }
+    }
+
+    private val affectiveListener: (RealtimeAffectiveData?) -> Unit by lazy {
+        {
+            it?.realtimeSleepData?.apply {
+                log(
+                    "睡眠程度: $sleepDegree 入睡状态：${
+                        if (sleepState == 0.0) {
+                            "未睡着"
+                        } else {
+                            "入睡了"
+                        }
+                    }"
+                )
+            }
+        }
+    }
+
+
+```
+
+## 解析脑电波数据结果
 
 ```kotlin
  fun <R> readFileAnalysisData(inputStream: InputStream,
@@ -108,6 +175,7 @@ interface IConnectionServiceListener {
 ### 解析完整的单通道数据文件流
 
     readFileAnalysisData(inputStream, { singleData ->
+                        
                             SingleChannelEEGUtil.process(singleData) { allData ->
                                 appendSCEEGData(allData)
                             }
@@ -125,6 +193,17 @@ interface IConnectionServiceListener {
                                 appendLog("解析文件成功")
                             }
                         })
+
+#### 解析完整的单通道数据
+
+
+
+    SingleChannelEEGUtil.process(byteInt: Int, appendDataList: (List<Int>) -> Unit)
+
+|       参数       |          类型          |                         说明                        |
+| :------------: | :------------------: | :-----------------------------------------------: |
+|     byteInt    |          Int         | Byte 转成0-255的int型，可通过CharUtil.converUnchart方法进行转换 |
+| appendDataList | (List\<Int>) -> Unit |                  处理一个有效的单通道数据的方法                  |
 
 ### 解析有效的单通道数据文件流
 
@@ -148,10 +227,10 @@ interface IConnectionServiceListener {
                             }
                         })
 
-## 5.获取报表
+## 获取报表
 
 ```kotlin
-    fun getReport(listener: IGetReportListener, needFinishService: Boolean)
+fun getReport(listener: IGetReportListener, needFinishService: Boolean)
 
 /**
  * 获取报表接口
@@ -181,268 +260,148 @@ interface IGetReportListener {
     fun getAffectiveReportError(error: Error?)
 }
 
-
+//获取报表实体类
 data class UploadReportEntity(
         val code: Int,
 
         val `data`: Data? = null,
         val msg: String,
-
-
-        val reportVersion: String = "3",
-
-        var sessionId: String,
-        var start: String,
-
-        var timePoints: TimePoints? = null,
-        val user_id: Int,
-        /**
-         * 算法版本
-         * */
-        val version: Version,
+        .....//无用数据
         )
 
 data class Data(
-        val affective: Affective,
+       val affective: Affective,
         val biodata: Biodata
 )
 
-data class TimePoints(
-        val affective: AffectiveTimePoints,
-        val biodata: BiodataTimePoints
-)
 
-data class Version(
-        val affective: AffectiveVersion,
-        val biodata: BiodataVersion
+
+data class Biodata(
+        //单通道数据
+        val sceegData:Sceeg,
+       ...
 )
 
 data class Affective(
-        val arousal: Arousal,
-        val attention: Attention,
-        val coherence: Coherence,
-        val pleasure: Pleasure,
-        val pressure: Pressure,
-        val relaxation: Relaxation,
-        val meditation: Meditation
-)
-
-data class Biodata(
-        val eeg: Eeg,
-
-        val hr: HrV2,
-        val pepr: PEPR?
-)
-
-data class PEPR(
-        val hrAvg: Int,
-        val hrMax: Int,
-        val hrMin: Int,
-        val hrRec: List<Int>,
-
-        val hrvAvg: Double,
-
-        val hrvRec: List<Double>,
-
-        val rrAvg: Double,
-
-        val rrRec: List<Double>,
-
-        val bcgQualityRec: List<Int>,
-
-        val rwQualityRec: List<Int>
+    ...
+    val sleep: Sleep
 )
 
 
-data class Arousal(
-        /**
-         * 全程激活度有效值（除去无效值0）的均值
-         * */
-        val arousal_avg: Int,
-        /**
-         * 全程激活度记录
-         * */
-        val arousal_rec: Any
+data class Sceeg(
+    val sceegAlphaCurve: List<Double>,
+    val scegBetaCurve: List<Double>,
+    val sceegDeltaCurve: List<Double>,
+    val sceegGammaCurve: List<Double>,
+    val sceegThetaCurve: List<Double>,
+    val sceegQualityRec: List<Int>
 )
 
-data class Attention(
-        /**
-         * 全程注意力有效值（除去无效值0）的均值
-         * */
 
-        val attentionAvg: Double,
-        /**
-         * 全程注意力记录
-         * */
 
-        val attentionRec: List<Double>
+data class Sleep(
+    /**
+     * 睡眠曲线，反映整个体验过程的睡眠情况。睡眠曲线的值越高表明越接近清醒，曲线值越低表明越接近深睡。
+     * */
+    val sleepCurve: ArrayList<Double> = ArrayList(),
+    /**
+     * 入睡点时间索引,即入睡时刻在睡眠曲线上的时间轴坐标。数值范围[0, +∞),0表示无效值
+     * */
+    val sleepPoint: Int = 0,
+    /**
+     * 入睡用时，单位：秒
+     * */
+    val sleepLatency: Int = 0,
+    /**
+     * 清醒时长，单位：秒
+     * */
+    val awakeDuration: Int = 0,
+    /**
+     * 浅睡时长，单位：秒
+     * */
+    val lightDuration: Int = 0,
+    /**
+     * 深睡时长，单位：秒
+     * */
+    val deepDuration: Int = 0,
+    /**
+     * 快速眼动时长
+     */
+    var remDuration: Int = 0,
+    /**
+     * 运动次数
+     */
+    var movementCount: Int = 0,
+    /**
+     * 惊醒次数
+     */
+    var arousalCount: Int = 0,
+    /**
+     * 容差
+     */
+    var disturbTolerance: Double = 0.0,
+
+    val sleepEegAlphaCurve: List<Double> = ArrayList(),
+
+    val sleepEegBetaCurve: List<Double> =
+        ArrayList(),
+
+    val sleepEegThetaCurve: List<Double> =
+        ArrayList(),
+
+    val sleepEegDeltaCurve: List<Double> =
+        ArrayList(),
+
+    val sleepEegGammaCurve: List<Double> =
+        ArrayList(),
+
+    val sleepEegQualityRec: List<Int> =
+        ArrayList(),
+
+    val sleepMovementRec: List<Int> =
+        ArrayList(),
+
+    val sleepArousalRec: List<Int> = ArrayList()
 )
 
-data class Coherence(
-        /**
-         * 全程和谐度有效值（除去无效值0）的均值
-         * */
 
-        val coherenceAvg: Double,
-
-        val coherenceDuration: Int?,
-
-        val coherenceFlag: List<Int>?,
-        /**
-         * 全程和谐度记录
-         * */
-
-        val coherenceRec: List<Double>
-)
-
-data class Pleasure(
-        /**
-         * 全程愉悦度有效值（除去无效值0）的均值
-         * */
-
-        val pleasureAvg: Double,
-        /**
-         * 全程压力水平记录
-         * */
-
-        val pleasureRec: List<Double>
-)
-
-data class Pressure(
-
-        val pressureAvg: Double,
-
-        val pressureRec: List<Double>
-)
-
-data class Relaxation(
-        /**
-         * 全程放松度有效值（除去无效值0）的均值
-         * */
-
-        val relaxationAvg: Double,
-        /**
-         * 全程放松度记录
-         * */
-
-        val relaxationRec: List<Double>
-)
-
-data class Meditation(
-
-        val meditationAvg: Double,
-
-        val meditationRec: List<Double>,
-
-        val meditationTipsRec: List<Int>,
-
-        val flowPercent: Double,
-
-        val flowDuration: Int,
-
-        val flowLatency: Int,
-
-        val flowCombo: Int,
-
-        val flowDepth: Double,
-
-        val flowBackNum: Int,
-
-        val flowLossNum: Int,
-        )
-
-data class Eeg(
-
-        val eegAlphaCurve: List<Double>,
-
-        val eegBetaCurve: List<Double>,
-
-        val eegDeltaCurve: List<Double>,
-
-        val eegGammaCurve: List<Double>,
-
-        val eegThetaCurve: List<Double>,
-
-        val eegQualityRec: List<Int>
-)
-
-data class HrV2(
-
-        val hrAvg: Double?,
-
-        val hrMax: Int?,
-
-        val hrMin: Int?,
-
-        val hrRec: List<Int>,
-
-        val hrvAvg: Double?,
-
-        val hrvRec: List<Double>
-)
-
-data class AffectiveTimePoints(
-        val arousal: List<TimePoint>,
-        val attention: List<TimePoint>,
-        val coherence: List<TimePoint>,
-        val pleasure: List<TimePoint>,
-        val pressure: List<TimePoint>,
-        val relaxation: List<TimePoint>,
-        val meditation: List<TimePoint>
-)
-
-data class BiodataTimePoints(
-        val eeg: List<TimePoint>,
-
-        val hr: List<TimePoint>,
-        val pepr: List<TimePoint>
-)
-
-data class AffectiveVersion(
-        val arousal: String,
-        val attention: String,
-        val coherence: String,
-        val pleasure: String,
-        val pressure: String,
-        val relaxation: String
-)
-
-data class BiodataVersion(
-        val eeg: String,
-
-        val hr: String,
-        val pepr: String
-)
-
-/**
- * 持续的时间段，可能中途会断开
- * */
-data class TimePoint(
-        var start: String,
-        var stop: String
-)
 
 ```
 
 **参数说明**
 
-|         参数        |         类型         |           说明           |
-| :---------------: | :----------------: | :--------------------: |
-|      listener     | IGetReportListener |         获取报表回调         |
-| needFinishService |       Boolean      | 是否需要自动结束情感服务 true 自动结束 |
+|         参数        |         类型         |          说明          |
+| :---------------: | :----------------: | :------------------: |
+|      listener     | IGetReportListener |        获取报表回调        |
+| needFinishService |       Boolean      | 是否需要自动结束算法 true 自动结束 |
 
-## 6.资源释放
+## 资源释放
 
-注意，每次使用完情感云服务都需调用如下finishAffectiveService方法来释放资源
+注意，每次使用完算法都需调用如下finishAffectiveService方法来释放算法资源
 
 ```kotlin
     fun finishAffectiveService(listener: IFinishAffectiveServiceListener)
 ```
 
-## 7.断开情感云服务
+## 断开算法服务
 
     fun closeAffectiveServiceConnection()
 
-# 详细API功能说明
+## 流程图
 
-如果你需要根据不同场景灵活使用情感云服务，可以使用IAffectiveDataAnalysisService来调用相应API，该类封装了所有情感云服务对外的接口。更加详情的情感云API可以查看[情感云详细API功能说明](https://github.com/Entertech/Enter-Affective-Offline-SDK#%E6%83%85%E6%84%9F%E7%A6%BB%E7%BA%BF%E7%AE%97%E6%B3%95sdk)
+```mermaid
+graph LR
+
+设置连接算法服务监听-->
+连接算法服务-->
+启动算法服务-->处理数据
+处理数据-->获取报表
+处理数据-->订阅数据解析
+订阅数据解析-->取消订阅
+取消订阅-->结束算法服务
+取消订阅-->获取报表
+获取报表-->结束算法服务-->
+关闭情感服务连接
+
+```
+
