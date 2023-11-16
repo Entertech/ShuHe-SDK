@@ -1,3 +1,31 @@
+# 说明
+
+将硬件端采集到的脑电和心率原始数据传入情感离线算法SDK，可以计算出实时分析值和最终报表值。
+
+# 注意事项
+
+#### 代码混淆
+
+    -keep class cn.entertech.affectivesdk.authentication.bean.** { *; }
+
+#### so 文件说明
+
+算法核心功能实现依赖 so 库。在使用 SDK ，以及向工程中添加 so 时请注意以下几点：
+
+##### 确保添加了正确的 so 库文件
+
+###### **何为正确的 so 文件？**
+
+官方发布新版 SDK 时一定会同时更新 jar 文件和 so 文件，您需要做的是更新这些文件到您的工程中，不要出现遗漏。您可以参考Eclipse、Android Studio 配置工程提到的添加方法进行操作。
+
+##### 确保添加的 so 库文件与平台匹配
+
+###### **何为正确的 so 文件与平台匹配？**
+
+arm与x86，这代表核心处理器（cpu）的两种架构，对不同的架构需要引用不同的 so 文件，如果引用出现错误是不能正常使用 SDK 的。
+
+解决这个问题最简单的办法是在 libs 或 jnilibs 文件夹下只保留 arm64-v8a 一个文件夹。
+
 # 集成
 
 ### Gradle自动集成
@@ -101,6 +129,8 @@ interface IStartAffectiveServiceLister {
 
 ## 实时数据的订阅
 
+实时数据字段说明详见：[基础数据字段说明](https://github.com/Entertech/Enter-Affective-Offline-SDK/blob/main/%E5%AE%9E%E6%97%B6%E7%94%9F%E7%89%A9%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E5%AD%97%E6%AE%B5%E8%AF%B4%E6%98%8E.md),[情感数据字段说明](https://github.com/Entertech/Enter-Affective-Offline-SDK/blob/main/%E5%AE%9E%E6%97%B6%E7%94%9F%E7%90%86%E7%8A%B6%E6%80%81%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E5%AD%97%E6%AE%B5%E8%AF%B4%E6%98%8E.md)
+
 ```
 IAffectiveDataAnalysisService.subscribeData(
         bdListener: ((RealtimeBioData?) -> Unit)? = null,
@@ -196,8 +226,6 @@ IAffectiveDataAnalysisService.subscribeData(
 
 #### 解析完整的单通道数据
 
-
-
     SingleChannelEEGUtil.process(byteInt: Int, appendDataList: (List<Int>) -> Unit)
 
 |       参数       |          类型          |                         说明                        |
@@ -229,6 +257,8 @@ IAffectiveDataAnalysisService.subscribeData(
 
 ## 获取报表
 
+相应返回的 report 字段，具体字段的详细描述见[报表数据字段详情](https://github.com/Entertech/Enter-Affective-Offline-SDK/blob/main/%E6%8A%A5%E8%A1%A8%E6%95%B0%E6%8D%AE%E5%AD%97%E6%AE%B5%E8%AF%B4%E6%98%8E.md)。
+
 ```kotlin
 fun getReport(listener: IGetReportListener, needFinishService: Boolean)
 
@@ -246,7 +276,7 @@ interface IGetReportListener {
     /**
      * 获取报表成功
      * */
-    fun onSuccess(entity: UploadReportEntity?)
+    fun onSuccess(report: UploadReportEntity?)
 
     /**
      * 获取生物基础数据报表出错
@@ -404,4 +434,18 @@ graph LR
 关闭情感服务连接
 
 ```
+
+# 常见问题
+
+#### 运行demo 报 dlopen failed: library "libaffective.so" not found
+
+使用adb命令查询目标设备或模拟器的架构
+
+    adb shell getprop ro.product.cpu.abi
+
+在项目application类型的组件下的gradle 中的android/defaultConfig添加下面配置代码。abi指的是目标设备或模拟器的架构。
+
+    ndk {
+                abiFilters abi
+        }
 
