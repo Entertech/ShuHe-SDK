@@ -148,7 +148,7 @@ IAffectiveDataAnalysisService.subscribeData(
 
 ```
 
-## 解析脑电波数据结果
+## 解析脑电波数据文件
 
 ```kotlin
  fun <R> readFileAnalysisData(inputStream: InputStream,
@@ -226,6 +226,35 @@ IAffectiveDataAnalysisService.subscribeData(
                                 appendLog("解析文件成功")
                             }
                         })
+
+
+## 处理数据
+
+```
+	/**
+     * 发送数据
+     * */
+
+    fun appendEEGData(brainData: ByteArray)
+
+    /**
+     * 单通道数据
+     * */
+    fun appendSCEEGData(brainData: ByteArray)
+
+    /**
+     * 添加心率数据
+     * */
+    fun appendHeartRateData(heartRateData: Int)
+
+
+    /**
+     * 坐垫数据
+     * */
+    fun appendPEPRData(peprData: ByteArray)
+
+
+```
 
 ## 获取报表
 
