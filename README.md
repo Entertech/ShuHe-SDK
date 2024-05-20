@@ -33,7 +33,7 @@ arm与x86，这代表核心处理器（cpu）的两种架构，对不同的架�
 在module的build.gradle文件下添加以下依赖
 
 ```groovy
-implementation 'cn.entertech.android:affective-offline-sdk-shuhe:1.1.2'
+implementation 'cn.entertech.android:affective-offline-sdk-shuhe:1.1.3'
 ```
 
 在项目根目录的build.gradle文件下添加以下依赖地址
